@@ -7,8 +7,8 @@ using namespace std;
 string Unit(char n, bool base16 = false);
 string Ten(char n);
 string Hundred(char n);
-string ConvertNumberToText(int n, bool fractional = false);
-short ToShort(char n);
+string ConvertNumberToText(int n);
+short CharToShort(char n);
 
 string montantEnToutesLettres(long double montant)
 {
@@ -31,39 +31,46 @@ string montantEnToutesLettres(long double montant)
         finalResult += " et ";
 
     if (fractionalAmount)
-        finalResult += ConvertNumberToText((short)(fractionalAmount * 100)) + " centimes.";
+        finalResult += ConvertNumberToText((round(fractionalAmount * 100))) + " centimes.";
 
     return finalResult;
 
     //return "zero franc"s;
 }
 
-string ConvertNumberToText(int n, bool fractional)
+string ConvertNumberToText(int n)
 {
     string numberToConvert = to_string(n); // Nombre à convertir en string
     string numberConverted = ""; // Nombre renvoyé en texte
     short numberLength = numberToConvert.size();
 
-
     for (int i = 0; i <= 2 - numberLength; ++i)
         numberToConvert = '0' + numberToConvert;
 
     // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
-    bool unitBase16 = (numberToConvert[1] == '1' && ToShort(numberToConvert[2]) < 7 && ToShort(numberToConvert[2]) != 0);
+    bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < 7 && CharToShort(numberToConvert[2]) != 0);
 
+    // Centaines
     if(numberToConvert[0] != '0')
     {
         numberConverted += Hundred(numberToConvert[0]);
-        numberConverted += '-';
+
+        // Si dizaine ou unité, ajout d'un tiret
+        if (numberToConvert[1] != '0' || numberToConvert[2] != '0')
+            numberConverted += '-';
     }
 
-
+    // Dizaines
     if(numberToConvert[1] != '0' && !unitBase16)
     {
         numberConverted += Ten(numberToConvert[1]);
-        numberConverted += '-';
+
+        // Si unité, ajout d'un tiret
+        if (numberToConvert[2] != '0')
+            numberConverted += '-';
     }
 
+    // Unités
     if(numberToConvert[2] != '0')
         numberConverted += Unit(numberToConvert[2], unitBase16);
 
@@ -72,7 +79,8 @@ string ConvertNumberToText(int n, bool fractional)
 
 // Fonction écrivant les unités ou la base 16
 // Renvoi un string
-string Unit(char n, bool base16) {
+string Unit(char n, bool base16)
+{
 
     if (!base16)
     {
@@ -103,15 +111,12 @@ string Unit(char n, bool base16) {
             default: return ""; break;
         }
     }
-
-    //cout << "Base16 : " << unitBase16 << endl;
-    //cout << "ToShort : " << ToShort(numberToConvert[2]) << endl;
-    //cout << "Nombre a convertir : " << numberToConvert << endl;
 }
 
 // Fonction écrivant les dizaines
 // Renvoi un string
-string Ten(char n){
+string Ten(char n)
+{
     switch (n) {
         case '1': return "dix"; break;
         case '2': return "vingt"; break;
@@ -137,7 +142,7 @@ string Hundred(char n)
 }
 
 // Fonction convertissant les char en short
-short ToShort(char n)
+short CharToShort(char n)
 {
     return (short)(n - '0');
 }

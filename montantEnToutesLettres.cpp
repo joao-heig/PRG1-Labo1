@@ -4,7 +4,7 @@
 
 using namespace std;
 
-string Unit(char n, bool base16 = false);
+string Unit(char n, bool base16 = false, bool hasTen = false);
 string Ten(char n);
 string Hundred(char n);
 string ConvertNumberToText(int n);
@@ -49,7 +49,8 @@ string ConvertNumberToText(int n)
 
     // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
     bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < 7 && CharToShort(numberToConvert[2]) != 0);
-
+    bool hasTen = (numberToConvert[1] != '0');
+    cout << boolalpha << hasTen << endl;
     // Centaines
     if(numberToConvert[0] != '0')
     {
@@ -72,21 +73,22 @@ string ConvertNumberToText(int n)
 
     // Unités
     if(numberToConvert[2] != '0')
-        numberConverted += Unit(numberToConvert[2], unitBase16);
+        numberConverted += Unit(numberToConvert[2], unitBase16, hasTen);
 
     return numberConverted;
 }
 
 // Fonction écrivant les unités ou la base 16
 // Renvoi un string
-string Unit(char n, bool base16)
+string Unit(char n, bool base16, bool hasTen)
 {
 
     if (!base16)
     {
         switch (n)
         {
-            case '1': return "et-un"; break;
+            // s'il y a un décimal on écrit "et-un"
+            case '1': return hasTen ? "et-un" : "un";
             case '2': return "deux"; break;
             case '3': return "trois"; break;
             case '4': return "quatre"; break;

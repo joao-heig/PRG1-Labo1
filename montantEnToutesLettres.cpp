@@ -1,7 +1,147 @@
 #include "montantEnToutesLettres.h"
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 
-string montantEnToutesLettres(long double montant) {
-  return "zero franc"s;
+string Unit(char n, bool base16 = false);
+string Ten(char n);
+string Hundred(char n);
+string ConvertNumberToText(int n, bool fractional = false);
+short ToShort(char n);
+
+string montantEnToutesLettres(long double montant)
+{
+    double fractionalAmount; // Contenant de la fraction
+    double integerAmount; // Contenant de l'entier
+    string fractionalText;
+    string integerText;
+    string finalResult;
+
+    // Arrondi à 2
+    integerAmount = round(montant * 100.0) / 100.0;
+
+    // Séparation de l'entier et de la fraction
+    fractionalAmount = modf(integerAmount, &integerAmount);
+
+    if (integerAmount)
+        finalResult += ConvertNumberToText(integerAmount) + " francs";
+
+    if (integerAmount && fractionalAmount)
+        finalResult += " et ";
+
+    if (fractionalAmount)
+        finalResult += ConvertNumberToText((short)(fractionalAmount * 100)) + " centimes.";
+
+    return finalResult;
+
+    //return "zero franc"s;
 }
+
+string ConvertNumberToText(int n, bool fractional)
+{
+    string numberToConvert = to_string(n); // Nombre à convertir en string
+    string numberConverted = ""; // Nombre renvoyé en texte
+    short numberLength = numberToConvert.size();
+
+
+    for (int i = 0; i <= 2 - numberLength; ++i)
+        numberToConvert = '0' + numberToConvert;
+
+    // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
+    bool unitBase16 = (numberToConvert[1] == '1' && ToShort(numberToConvert[2]) < 7 && ToShort(numberToConvert[2]) != 0);
+
+    if(numberToConvert[0] != '0')
+    {
+        numberConverted += Hundred(numberToConvert[0]);
+        numberConverted += '-';
+    }
+
+
+    if(numberToConvert[1] != '0' && !unitBase16)
+    {
+        numberConverted += Ten(numberToConvert[1]);
+        numberConverted += '-';
+    }
+
+    if(numberToConvert[2] != '0')
+        numberConverted += Unit(numberToConvert[2], unitBase16);
+
+    return numberConverted;
+}
+
+// Fonction écrivant les unités ou la base 16
+// Renvoi un string
+string Unit(char n, bool base16) {
+
+    if (!base16)
+    {
+        switch (n)
+        {
+            case '1': return "et-un"; break;
+            case '2': return "deux"; break;
+            case '3': return "trois"; break;
+            case '4': return "quatre"; break;
+            case '5': return "cinq"; break;
+            case '6': return "six"; break;
+            case '7': return "sept"; break;
+            case '8': return "huit"; break;
+            case '9': return "neuf"; break;
+            default: return ""; break;
+        }
+    }
+    else
+    {
+        switch (n)
+        {
+            case '1': return "onze"; break;
+            case '2': return "douze"; break;
+            case '3': return "treize"; break;
+            case '4': return "quatorze"; break;
+            case '5': return "quinze"; break;
+            case '6': return "seize"; break;
+            default: return ""; break;
+        }
+    }
+
+    //cout << "Base16 : " << unitBase16 << endl;
+    //cout << "ToShort : " << ToShort(numberToConvert[2]) << endl;
+    //cout << "Nombre a convertir : " << numberToConvert << endl;
+}
+
+// Fonction écrivant les dizaines
+// Renvoi un string
+string Ten(char n){
+    switch (n) {
+        case '1': return "dix"; break;
+        case '2': return "vingt"; break;
+        case '3': return "trente"; break;
+        case '4': return "quarante"; break;
+        case '5': return "cinquante"; break;
+        case '6': return "soixante"; break;
+        case '7': return "septante"; break;
+        case '8': return "huitante"; break;
+        case '9': return "nonante"; break;
+        default: return ""; break;
+    }
+}
+
+// Fonction écrivant les centaines
+// Renvoi un string
+string Hundred(char n)
+{
+    if (n > 0)
+        return (int)n - '0'  == 1 ?  "cent" : Unit((char)(n)) + "-cents";
+    else
+        return "";
+}
+
+// Fonction convertissant les char en short
+short ToShort(char n)
+{
+    return (short)(n - '0');
+}
+
+
+
+

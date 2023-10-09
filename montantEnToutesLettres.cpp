@@ -2,6 +2,10 @@
 #include <cmath>
 #include <iostream>
 
+// A FAIRE
+// GERER LES TIRETS ET LES MILLIERS
+// BLOQUER NOMBRES NEGATIFS/ TROP GRANDS AVEC LE TYPE D'ERREUR
+// AJOUTER OU NON UN S A MILLIARD ET MILLION SUIVANT LE CHIFFRE
 using namespace std;
 
 string Unit(char n, bool base16 = false, bool hasTen = false);
@@ -9,6 +13,8 @@ string Ten(char n);
 string Hundred(char n);
 string ConvertNumberToText(int n);
 short CharToShort(char n);
+string NumbersSeparationByThree(double n);
+
 
 string montantEnToutesLettres(long double montant)
 {
@@ -19,13 +25,15 @@ string montantEnToutesLettres(long double montant)
     string finalResult;
 
     // Arrondi à 2
-    integerAmount = round(montant * 100.0) / 100.0;
+    montant = round(montant * 100.0) / 100.0;
 
     // Séparation de l'entier et de la fraction
-    fractionalAmount = modf(integerAmount, &integerAmount);
+    fractionalAmount = modf(montant, &integerAmount);
+
+    finalResult = NumbersSeparationByThree(integerAmount);
 
     if (integerAmount)
-        finalResult += ConvertNumberToText(integerAmount) + " francs";
+        finalResult += " francs";
 
     if (integerAmount && fractionalAmount)
         finalResult += " et ";
@@ -37,6 +45,35 @@ string montantEnToutesLettres(long double montant)
 
     //return "zero franc"s;
 }
+
+
+// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le préfix (mille, millions, milliards, etc...)
+string NumbersSeparationByThree(double n)
+{
+    // Variable contenant les différents groupes
+    long long integerGroup = n;
+    string result;
+
+    for (int i = 0; integerGroup > 0; i++)
+    { // PROBLEME AVEC LE 1000 ET LES TIRETS
+        switch (i)
+        {
+            case 1: result = "-mille" + result; break;
+            case 2: result = "-millions-" + result; break;
+            case 3: result = "-milliards-" + result; break;
+        }
+
+        if (integerGroup > 1)
+            result = ConvertNumberToText(integerGroup % 1000) + result;
+
+        integerGroup /= 1000;
+
+
+    }
+
+    return result;
+}
+
 
 string ConvertNumberToText(int n)
 {

@@ -2,21 +2,17 @@
 #include <cmath>
 #include <iostream>
 
-// A FAIRE
-// GERER LES TIRETS
-// BLOQUER NOMBRES NEGATIFS/ TROP GRANDS/ INVALIDES AVEC LE TYPE D'ERREUR
-// GERER LE 0
-// OPTIMISER
 using namespace std;
 
 string Unit(char n, bool base16 = false, bool hasTen = false);
 string Ten(char n);
-string Hundred(char n);
+string Hundred(char n, bool onlyHundred = false);
 string ConvertNumberToText(int n, bool continueNumber = false);
 short CharToShort(char n);
 string NumbersSeparationByThree(double n);
 
 
+// Renvoit la totalité de la réponse entière sous forme textuelle
 string montantEnToutesLettres(long double montant)
 {
     double fractionalAmount; // Contenant de la fraction
@@ -24,6 +20,13 @@ string montantEnToutesLettres(long double montant)
     string fractionalText;
     string integerText;
     string finalResult;
+
+    if (montant < 0)
+        return "erreur : montant negatif";
+    else if ((long long)montant > 999999999999.99)
+        return "erreur : montant trop grand";
+    else if (montant == 0)
+        return "zero franc";
 
     // Arrondi à 2
     montant = round(montant * 100.0) / 100.0;
@@ -33,28 +36,29 @@ string montantEnToutesLettres(long double montant)
 
     finalResult = NumbersSeparationByThree(integerAmount);
 
+    if (integerAmount && (long long)montant % (long long)1000000 == 0)
+        finalResult += " de";
+
     if (integerAmount)
-        finalResult += " francs";
+        finalResult += integerAmount <= 1 ? " franc" : " francs";
 
     if (integerAmount && fractionalAmount)
         finalResult += " et ";
 
     if (fractionalAmount)
-        finalResult += ConvertNumberToText((round(fractionalAmount * 100))) + " centimes.";
+    {
+        finalResult += ConvertNumberToText((round(fractionalAmount * 100)));
+        finalResult += round(fractionalAmount * 100) <= 1 ? " centime" : " centimes";
+    }
 
     return finalResult;
-
-    //return "zero franc"s;
 }
 
-// TOUJOURS PROBLEME TIRET
-
-// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le préfixe (mille, millions, milliards, etc...)
+// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le "préfixe" (mille, millions, milliards, etc...)
 string NumbersSeparationByThree(double n)
 {
     // Variable contenant les différents groupes
     long long integerGroup = n;
-    short numberType = 0; // 1 = mille, 2 = millions 3 = billions
     string result;
 
     // Ajoute l'écriture et les préfixes (mille/million/milliard)
@@ -78,13 +82,11 @@ string NumbersSeparationByThree(double n)
 
         }
 
-
         // Si supérieur ou égal à 1, écrit du texte && gère les exceptions de mille
         if (integerGroup >= 1 && !(i == 1 && integerGroup % 1000 == 1 ))
-            result = ConvertNumberToText(integerGroup % 1000, integerGroup >= 1) + (!result.empty() ? "-" : "") + result;
+            result = ConvertNumberToText(integerGroup % 1000, i == 1) + (!result.empty() ? "-" : "") + result;
 
         integerGroup /= 1000; // Division par 1000
-
     }
 
     return result;
@@ -104,11 +106,13 @@ string ConvertNumberToText(int n, bool continueNumber)
     // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
     bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < 7 && CharToShort(numberToConvert[2]) != 0);
     bool hasTen = (numberToConvert[1] != '0');
+    bool onlyHundred = (!continueNumber && (numberToConvert[1] == '0' || numberToConvert[2] == '0'));
+
 
     // Centaines
     if(numberToConvert[0] != '0')
     {
-        numberConverted += Hundred(numberToConvert[0]);
+        numberConverted += Hundred(numberToConvert[0], onlyHundred);
 
         // Si dizaine ou unité, ajout d'un tiret
         if (numberToConvert[1] != '0' || numberToConvert[2] != '0')
@@ -192,10 +196,10 @@ string Ten(char n)
 
 // Fonction écrivant les centaines
 // Renvoi un string
-string Hundred(char n)
+string Hundred(char n, bool onlyHundred)
 {
     if (n > 0)
-        return (int)n - '0'  == 1 ?  "cent" : Unit(n) + "-cents";
+        return ((int)n - '0' == 1) ? "cent" : (!onlyHundred ? Unit(n) + "-cent" : Unit(n) + "-cents");
     else
         return "";
 }

@@ -3,15 +3,16 @@
 #include <iostream>
 
 // A FAIRE
-// GERER LES TIRETS ET LES MILLIERS
-// BLOQUER NOMBRES NEGATIFS/ TROP GRANDS AVEC LE TYPE D'ERREUR
-// AJOUTER OU NON UN S A MILLIARD ET MILLION SUIVANT LE CHIFFRE
+// GERER LES TIRETS
+// BLOQUER NOMBRES NEGATIFS/ TROP GRANDS/ INVALIDES AVEC LE TYPE D'ERREUR
+// GERER LE 0
+// OPTIMISER
 using namespace std;
 
 string Unit(char n, bool base16 = false, bool hasTen = false);
 string Ten(char n);
 string Hundred(char n);
-string ConvertNumberToText(int n);
+string ConvertNumberToText(int n, bool continueNumber = false);
 short CharToShort(char n);
 string NumbersSeparationByThree(double n);
 
@@ -46,28 +47,43 @@ string montantEnToutesLettres(long double montant)
     //return "zero franc"s;
 }
 
+// TOUJOURS PROBLEME TIRET
 
-// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le préfix (mille, millions, milliards, etc...)
+// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le préfixe (mille, millions, milliards, etc...)
 string NumbersSeparationByThree(double n)
 {
     // Variable contenant les différents groupes
     long long integerGroup = n;
+    short numberType = 0; // 1 = mille, 2 = millions 3 = billions
     string result;
 
+    // Ajoute l'écriture et les préfixes (mille/million/milliard)
     for (int i = 0; integerGroup > 0; i++)
-    { // PROBLEME AVEC LE 1000 ET LES TIRETS
-        switch (i)
+    {
+        if(ConvertNumberToText(integerGroup % 1000) != "")
         {
-            case 1: result = "-mille" + result; break;
-            case 2: result = "-millions-" + result; break;
-            case 3: result = "-milliards-" + result; break;
+            // Suivant la valeur de i, ajoute mille/million/milliard
+            switch (i)
+            {
+                case 1:
+                    result = string("mille") + (result.empty() ? "" : "-") + result;
+                    break;
+                case 2:
+                    result = string(integerGroup == 1 ?  "million" : "millions") + (result.empty() ? "" : "-") + result;
+                    break;
+                case 3:
+                    result = string(integerGroup == 1 ?  "milliard" : "milliards") + (result.empty() ? "" : "-") + result;
+                    break;
+            }
+
         }
 
-        if (integerGroup > 1)
-            result = ConvertNumberToText(integerGroup % 1000) + result;
 
-        integerGroup /= 1000;
+        // Si supérieur ou égal à 1, écrit du texte && gère les exceptions de mille
+        if (integerGroup >= 1 && !(i == 1 && integerGroup % 1000 == 1 ))
+            result = ConvertNumberToText(integerGroup % 1000, integerGroup >= 1) + (!result.empty() ? "-" : "") + result;
 
+        integerGroup /= 1000; // Division par 1000
 
     }
 
@@ -75,7 +91,8 @@ string NumbersSeparationByThree(double n)
 }
 
 
-string ConvertNumberToText(int n)
+
+string ConvertNumberToText(int n, bool continueNumber)
 {
     string numberToConvert = to_string(n); // Nombre à convertir en string
     string numberConverted = ""; // Nombre renvoyé en texte
@@ -87,7 +104,7 @@ string ConvertNumberToText(int n)
     // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
     bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < 7 && CharToShort(numberToConvert[2]) != 0);
     bool hasTen = (numberToConvert[1] != '0');
-    cout << boolalpha << hasTen << endl;
+
     // Centaines
     if(numberToConvert[0] != '0')
     {
@@ -111,6 +128,9 @@ string ConvertNumberToText(int n)
     // Unités
     if(numberToConvert[2] != '0')
         numberConverted += Unit(numberToConvert[2], unitBase16, hasTen);
+
+    if (continueNumber)
+        numberToConvert += '-';
 
     return numberConverted;
 }
@@ -175,7 +195,7 @@ string Ten(char n)
 string Hundred(char n)
 {
     if (n > 0)
-        return (int)n - '0'  == 1 ?  "cent" : Unit((char)(n)) + "-cents";
+        return (int)n - '0'  == 1 ?  "cent" : Unit(n) + "-cents";
     else
         return "";
 }

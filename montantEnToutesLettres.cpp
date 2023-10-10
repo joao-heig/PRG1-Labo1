@@ -54,7 +54,6 @@ string montantEnToutesLettres(long double montant)
     return finalResult;
 }
 
-// Écrit du texte pour chaque groupe de 3 nombres, et ajoute le "préfixe" (mille, millions, milliards, etc...)
 string NumbersSeparationByThree(double n)
 {
     // Variable contenant les différents groupes
@@ -83,14 +82,23 @@ string NumbersSeparationByThree(double n)
         }
 
         // Si supérieur ou égal à 1, écrit du texte && gère les exceptions de mille
-        if (integerGroup >= 1 && !(i == 1 && integerGroup % 1000 == 1 ))
-            result = ConvertNumberToText(integerGroup % 1000, i == 1) + (!result.empty() ? "-" : "") + result;
+        if (!(i == 1 && integerGroup % 1000 == 1 ))
+        {
+            // Ajoute un tiret si le prochain modulo n'est pas vide
+            string temp = ConvertNumberToText(integerGroup % 1000, i == 1);
 
-        integerGroup /= 1000; // Division par 1000
+            if (!temp.empty())
+            {
+                result = temp + (!result.empty() ? "-" : "") + result;
+            }
+        }
+
+        integerGroup /= 1000;
     }
 
     return result;
 }
+
 
 
 

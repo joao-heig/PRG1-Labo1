@@ -20,8 +20,7 @@ string NumbersSeparationByThree(long long integerGroup, int i = 0, string result
 // Renvoie la totalité de la réponse sous forme textuelle
 string montantEnToutesLettres(long double montant)
 {
-    double fractionalAmount;
-    double integerAmount;
+    double fractionalAmount, integerAmount;
     string finalResult;
 
     const long double MAX_VALUE = 999999999999.99;
@@ -35,7 +34,7 @@ string montantEnToutesLettres(long double montant)
     else if (montant == 0)
         return "zero franc";
 
-    // SÉPARATION ENTIER/FRACTION
+    // Séparation entier/fraction
     montant = round(montant * 100.0) / 100.0;
     fractionalAmount = modf(montant, &integerAmount);
 

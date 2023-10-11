@@ -1,3 +1,10 @@
+/* PROJET : PRG1-Labo-1
+ * AUTEURS : Samuel Fernandez | João Ferreira
+ * DESCRIPTION : Programme convertissant un nombre donné textuellement en français
+ * DATE DE DÉBUT : 06.11.23
+ * ÉCOLE : HEIG-VD
+ */
+
 #define CATCH_CONFIG_FAST_COMPILE
 
 #include <catch2/catch_test_macros.hpp>

@@ -1,6 +1,12 @@
+/* PROJET : PRG1-Labo-1
+ * AUTEURS : Samuel Fernandez | João Ferreira
+ * DESCRIPTION : Programme convertissant un nombre donné textuellement en français
+ * DATE DE DÉBUT : 06.11.23
+ * ÉCOLE : HEIG-VD
+ */
+
 #include "montantEnToutesLettres.h"
 #include <cmath>
-#include <iostream>
 
 using namespace std;
 
@@ -9,42 +15,46 @@ string Ten(char n);
 string Hundred(char n, bool onlyHundred = false);
 string ConvertNumberToText(int n, bool continueNumber = false);
 short CharToShort(char n);
-string NumbersSeparationByThree(double n);
+string NumbersSeparationByThree(long long integerGroup, int i = 0, string result = "");
 
-
-// Renvoit la totalité de la réponse entière sous forme textuelle
+// Renvoie la totalité de la réponse sous forme textuelle
 string montantEnToutesLettres(long double montant)
 {
-    double fractionalAmount; // Contenant de la fraction
-    double integerAmount; // Contenant de l'entier
-    string fractionalText;
-    string integerText;
+    double fractionalAmount;
+    double integerAmount;
     string finalResult;
 
+    const long double MAX_VALUE = 999999999999.99;
+    const int ONE_MILLION = 1000000;
+
+    // Gestion des erreurs en amont
     if (montant < 0)
         return "erreur : montant negatif";
-    else if ((long long)montant > 999999999999.99)
+    else if ((long long)montant > MAX_VALUE)
         return "erreur : montant trop grand";
     else if (montant == 0)
         return "zero franc";
 
-    // Arrondi à 2
+    // SÉPARATION ENTIER/FRACTION
     montant = round(montant * 100.0) / 100.0;
-
-    // Séparation de l'entier et de la fraction
     fractionalAmount = modf(montant, &integerAmount);
 
+    // Création du texte
     finalResult = NumbersSeparationByThree(integerAmount);
 
-    if (integerAmount && (long long)montant % (long long)1000000 == 0)
+    // Si divisable par 1mio, ajoute "de" au résultat
+    if (integerAmount && (long long)montant % (long long)ONE_MILLION == 0)
         finalResult += " de";
 
+    // Si au-dessus de 1, pluriel
     if (integerAmount)
         finalResult += integerAmount <= 1 ? " franc" : " francs";
 
+    // Si franc et centime, ajoute "et
     if (integerAmount && fractionalAmount)
         finalResult += " et ";
 
+    // Si centime
     if (fractionalAmount)
     {
         finalResult += ConvertNumberToText((round(fractionalAmount * 100)));
@@ -54,18 +64,16 @@ string montantEnToutesLettres(long double montant)
     return finalResult;
 }
 
-string NumbersSeparationByThree(double n)
+// Permet de séparer la partie entière en groupe de 3 chiffres
+string NumbersSeparationByThree(long long integerGroup, int i, string result)
 {
-    // Variable contenant les différents groupes
-    long long integerGroup = n;
-    string result;
-
-    // Ajoute l'écriture et les préfixes (mille/million/milliard)
-    for (int i = 0; integerGroup > 0; i++)
+    const short THOUSAND_SEPARATOR = 1000;
+    // Si le groupe est au-dessus de 0, continue, sinon renvoie le résultat
+    if (integerGroup > 0)
     {
-        if(ConvertNumberToText(integerGroup % 1000) != "")
+        // Si la conversion ne renvoie pas rien
+        if(ConvertNumberToText(integerGroup % THOUSAND_SEPARATOR) != "")
         {
-            // Suivant la valeur de i, ajoute mille/million/milliard
             switch (i)
             {
                 case 1:
@@ -78,80 +86,75 @@ string NumbersSeparationByThree(double n)
                     result = string(integerGroup == 1 ?  "milliard" : "milliards") + (result.empty() ? "" : "-") + result;
                     break;
             }
-
         }
 
-        // Si supérieur ou égal à 1, écrit du texte && gère les exceptions de mille
-        if (!(i == 1 && integerGroup % 1000 == 1 ))
+        if (!(i == 1 && integerGroup % THOUSAND_SEPARATOR == 1 ))
         {
-            // Ajoute un tiret si le prochain modulo n'est pas vide
-            string temp = ConvertNumberToText(integerGroup % 1000, i == 1);
+            string temp = ConvertNumberToText(integerGroup % THOUSAND_SEPARATOR, i == 1);
 
+            // Si temp n'est pas vide
             if (!temp.empty())
             {
+                // Ajoute à result temp et un tiret si result est vide
                 result = temp + (!result.empty() ? "-" : "") + result;
             }
         }
-
-        integerGroup /= 1000;
+        // Récursive
+        return NumbersSeparationByThree(integerGroup / THOUSAND_SEPARATOR, i + 1, result);
     }
-
-    return result;
+    else
+        return result;
 }
 
-
-
-
+// Convertit un groupe de 3 chiffres en texte
 string ConvertNumberToText(int n, bool continueNumber)
 {
     string numberToConvert = to_string(n); // Nombre à convertir en string
     string numberConverted = ""; // Nombre renvoyé en texte
-    short numberLength = numberToConvert.size();
+    const short MAX_BASE_16 = 7;
 
-    for (int i = 0; i <= 2 - numberLength; ++i)
+    // Rajoute des 0 si besoin afin que le groupe de chiffres soit de 3
+    while (numberToConvert.size() < 3)
         numberToConvert = '0' + numberToConvert;
 
     // Détecte si base 16 (onze douze... seize) ou non et si dix ou non
-    bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < 7 && CharToShort(numberToConvert[2]) != 0);
+    bool unitBase16 = (numberToConvert[1] == '1' && CharToShort(numberToConvert[2]) < MAX_BASE_16 && CharToShort(numberToConvert[2]) != 0);
     bool hasTen = (numberToConvert[1] != '0');
     bool onlyHundred = (!continueNumber && (numberToConvert[1] == '0' || numberToConvert[2] == '0'));
 
+    // Crée des variables pour vérifier si chaque chiffre est égal à '0'
+    bool isZeroHundreds = (numberToConvert[0] == '0');
+    bool isZeroTens = (numberToConvert[1] == '0');
+    bool isZeroUnits = (numberToConvert[2] == '0');
 
     // Centaines
-    if(numberToConvert[0] != '0')
+    if(!isZeroHundreds)
     {
         numberConverted += Hundred(numberToConvert[0], onlyHundred);
-
         // Si dizaine ou unité, ajout d'un tiret
-        if (numberToConvert[1] != '0' || numberToConvert[2] != '0')
+        if (!isZeroTens || !isZeroUnits)
             numberConverted += '-';
     }
 
     // Dizaines
-    if(numberToConvert[1] != '0' && !unitBase16)
+    if(!isZeroTens && !unitBase16)
     {
         numberConverted += Ten(numberToConvert[1]);
-
         // Si unité, ajout d'un tiret
-        if (numberToConvert[2] != '0')
+        if (!isZeroUnits)
             numberConverted += '-';
     }
 
     // Unités
-    if(numberToConvert[2] != '0')
+    if(!isZeroUnits)
         numberConverted += Unit(numberToConvert[2], unitBase16, hasTen);
-
-    if (continueNumber)
-        numberToConvert += '-';
 
     return numberConverted;
 }
 
 // Fonction écrivant les unités ou la base 16
-// Renvoi un string
 string Unit(char n, bool base16, bool hasTen)
 {
-
     if (!base16)
     {
         switch (n)
@@ -169,6 +172,7 @@ string Unit(char n, bool base16, bool hasTen)
             default: return ""; break;
         }
     }
+    // Base 16
     else
     {
         switch (n)
@@ -202,12 +206,11 @@ string Ten(char n)
     }
 }
 
-// Fonction écrivant les centaines
-// Renvoi un string
+// Fonction écrivant les centaines au pluriel ou non
 string Hundred(char n, bool onlyHundred)
 {
     if (n > 0)
-        return ((int)n - '0' == 1) ? "cent" : (!onlyHundred ? Unit(n) + "-cent" : Unit(n) + "-cents");
+        return (CharToShort(n) == 1) ? "cent" : (!onlyHundred ? Unit(n) + "-cent" : Unit(n) + "-cents");
     else
         return "";
 }
